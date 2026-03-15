@@ -13,12 +13,18 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # --- Configurazione dei Percorsi ---
-DATA_DIR = 'data'
+# Supporta variabili d'ambiente per integrazione con run_experiments.py
+DATASET_PATH = os.environ.get('DATASET_PATH', 'data/pytorch/reviews/hotel_reviews_synthetic_0.9.csv')
+PREDICTIONS_DIR = os.environ.get('PREDICTIONS_DIR', 'data/pytorch/predictions')
 MODELS_DIR = 'models'
-DATASET_FILENAME = 'hotel_reviews_synthetic.csv'
-DATASET_PATH = os.path.join(DATA_DIR, DATASET_FILENAME)
 
-os.makedirs(DATA_DIR, exist_ok=True)
+# Estrae il valore di RANDOMNESS dal nome del file dataset (es. hotel_reviews_synthetic_0.9.csv → 0.9)
+_randomness_match = re.search(r'_(\d+\.\d+)\.csv$', DATASET_PATH)
+RANDOMNESS_VALUE = _randomness_match.group(1) if _randomness_match else 'unknown'
+
+# Crea le directory se non esistono
+os.makedirs(os.path.dirname(DATASET_PATH), exist_ok=True)
+os.makedirs(PREDICTIONS_DIR, exist_ok=True)
 os.makedirs(MODELS_DIR, exist_ok=True)
 
 # Riproducibilità
@@ -206,6 +212,61 @@ torch.save({
 
 print(f"\n✅ Modelli PyTorch salvati in: {MODELS_DIR}/")
 
+# --- Generazione Visualizzazioni Avanzate (opzionale) ---
+def generate_performance_visualizations(acc_dept, f1_dept, acc_sent, f1_sent):
+    """Genera visualizzazioni delle performance attuali."""
+    try:
+        from pathlib import Path
+        plots_dir = Path('plots/pytorch')
+        plots_dir.mkdir(parents=True, exist_ok=True)
+
+        # Grafico performance attuale
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+
+        # Accuracy
+        models = ['Classificazione\nReparto', 'Analisi\nSentiment']
+        accuracies = [acc_dept, acc_sent]
+        colors = ['#2E86AB', '#A23B72']
+
+        bars1 = ax1.bar(models, accuracies, color=colors, alpha=0.8)
+        ax1.set_title('Accuracy dei Modelli', fontweight='bold', fontsize=14)
+        ax1.set_ylabel('Accuracy', fontweight='bold')
+        ax1.set_ylim(0, 1)
+        ax1.grid(True, alpha=0.3)
+
+        # Aggiungi valori
+        for bar, acc in zip(bars1, accuracies):
+            ax1.text(bar.get_x() + bar.get_width()/2., acc + 0.02,
+                     f'{acc:.1%}', ha='center', va='bottom', fontweight='bold', fontsize=12)
+
+        # F1-Score
+        f1_scores = [f1_dept, f1_sent]
+        bars2 = ax2.bar(models, f1_scores, color=colors, alpha=0.8)
+        ax2.set_title('F1-Score Macro dei Modelli', fontweight='bold', fontsize=14)
+        ax2.set_ylabel('F1-Score', fontweight='bold')
+        ax2.set_ylim(0, 1)
+        ax2.grid(True, alpha=0.3)
+
+        # Aggiungi valori
+        for bar, f1 in zip(bars2, f1_scores):
+            ax2.text(bar.get_x() + bar.get_width()/2., f1 + 0.02,
+                     f'{f1:.1%}', ha='center', va='bottom', fontweight='bold', fontsize=12)
+
+        plt.suptitle('SmartHotels: Performance Modelli PyTorch', fontsize=16, fontweight='bold')
+        plt.tight_layout()
+        plt.savefig(plots_dir / 'current_performance_pytorch.png', dpi=300, bbox_inches='tight')
+        plt.show()
+
+        print(f"📊 Visualizzazione performance salvata in: {plots_dir / 'current_performance_pytorch.png'}")
+
+    except ImportError:
+        print("⚠️  Matplotlib non disponibile per le visualizzazioni")
+    except Exception as e:
+        print(f"⚠️  Errore nella generazione visualizzazioni: {e}")
+
+# Genera visualizzazioni delle performance attuali
+generate_performance_visualizations(acc_dept, f1_dept, acc_sent, f1_sent)
+
 # --- Visualizzazioni ---
 def plot_confusion_matrix(cm, labels, title):
     plt.figure(figsize=(8, 6))
@@ -234,7 +295,7 @@ test_results = pd.DataFrame({
     'sentiment_confidence': y_sent_proba.max(axis=1)
 })
 
-OUTPUT_FILENAME = f'predictions_pytorch_{pd.Timestamp.now().strftime("%Y%m%d_%H%M%S")}.csv'
-OUTPUT_PATH = os.path.join(DATA_DIR, OUTPUT_FILENAME)
+OUTPUT_FILENAME = f'predictions_{pd.Timestamp.now().strftime("%Y%m%d_%H%M%S")}_R{RANDOMNESS_VALUE}_pytorch.csv'
+OUTPUT_PATH = os.path.join(PREDICTIONS_DIR, OUTPUT_FILENAME)
 test_results.to_csv(OUTPUT_PATH, index=False)
 print(f"\n✅ Risultati predizioni salvati in: {OUTPUT_PATH}")

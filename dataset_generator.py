@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import os
 import random
 from sklearn.utils import shuffle
 
@@ -239,8 +240,9 @@ df = add_realistic_errors(df, error_rate=RANDOMNESS)
 
 df['id'] = df.index + 1 # Ri-assegna ID sequenziale dopo lo shuffle
 
-# Esporta il dataset
-DATASET_PATH = 'data/hotel_reviews_synthetic.csv'
+# Esporta il dataset (il nome include il valore di RANDOMNESS come suffisso)
+DATASET_PATH = f'data/hotel_reviews_synthetic_{RANDOMNESS}.csv'
+os.makedirs('data', exist_ok=True)
 df.to_csv(DATASET_PATH, index=False)
 print(f"✅ Dataset generato e salvato in: {DATASET_PATH}")
 print(f"Totale recensioni: {len(df)}")

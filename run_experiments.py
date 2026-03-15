@@ -4,46 +4,71 @@ Script per eseguire esperimenti automatici con diversi valori di RANDOMNESS
 e generare visualizzazioni comparative per SmartHotels.
 """
 
+import argparse
 import subprocess
 import sys
+import os
+import shutil
 import time
 import json
 from pathlib import Path
 from datetime import datetime
 
-def run_experiment(randomness_value):
+PIPELINE_SCRIPTS = {
+    'sklearn': 'ml_pipeline_sklearn.py',
+    'pytorch': 'ml_pipeline_pytorch.py',
+}
+
+def run_experiment(randomness_value, pipeline_script, pipeline_name):
     """Esegue un esperimento con un valore specifico di RANDOMNESS."""
     print(f"\n Esperimento con RANDOMNESS = {randomness_value}")
-    
+
     generator_path = Path('dataset_generator.py')
-    
+
     with open(generator_path, 'r', encoding='utf-8') as f:
         content = f.read()
-    
+
     original_content = content
-    
+
     try:
         # Modifica il valore di RANDOMNESS nel file del generatore
         import re
         new_content = re.sub(r'RANDOMNESS = [0-9.]+', f'RANDOMNESS = {randomness_value}', content)
-        
+
         # Riscrive il file modificato
         with open(generator_path, 'w', encoding='utf-8') as f:
             f.write(new_content)
-        
+
         # Esegui il generatore
         print("   Generando dataset...")
-        result_gen = subprocess.run([sys.executable, 'dataset_generator.py'], 
+        result_gen = subprocess.run([sys.executable, 'dataset_generator.py'],
                                    capture_output=True, text=True)
-        
+
         if result_gen.returncode != 0:
             print(f"   ❌ Errore nel generatore: {result_gen.stderr}")
             return None
-        
+
+        # Copia il dataset nella sottocartella della pipeline
+        dataset_src = f'data/hotel_reviews_synthetic_{randomness_value}.csv'
+        reviews_dir = Path(f'data/{pipeline_name}/reviews')
+        predictions_dir = Path(f'data/{pipeline_name}/predictions')
+        reviews_dir.mkdir(parents=True, exist_ok=True)
+        predictions_dir.mkdir(parents=True, exist_ok=True)
+
+        dataset_dst = reviews_dir / f'hotel_reviews_synthetic_{randomness_value}.csv'
+        shutil.copy2(dataset_src, dataset_dst)
+        os.remove(dataset_src)
+        print(f"   📁 Dataset spostato in: {dataset_dst}")
+
+        # Prepara variabili d'ambiente per la pipeline
+        env = os.environ.copy()
+        env['DATASET_PATH'] = str(dataset_dst)
+        env['PREDICTIONS_DIR'] = str(predictions_dir)
+
         # Esegui la pipeline ML
-        print("   Addestrando modelli...")
-        result_ml = subprocess.run([sys.executable, 'ml_pipeline_pytorch.py'], 
-                                  capture_output=True, text=True)
+        print(f"   Addestrando modelli con {pipeline_script}...")
+        result_ml = subprocess.run([sys.executable, pipeline_script],
+                                  capture_output=True, text=True, env=env)
         
         if result_ml.returncode != 0:
             print(f"   ❌ Errore nella pipeline ML: {result_ml.stderr}")
@@ -94,9 +119,10 @@ def extract_metric(output, section, metric):
     except:
         return 0.0
 
-def run_full_experiment():
+def run_full_experiment(pipeline_script, pipeline_name):
     """Esegue l'esperimento completo con diversi valori di RANDOMNESS."""
     print("SmartHotels: Esperimento RANDOMNESS Completo")
+    print(f"Pipeline selezionata: {pipeline_script}")
     print("=" * 50)
     
     # Valori di RANDOMNESS da testare
@@ -109,14 +135,14 @@ def run_full_experiment():
     
     # Esegui esperimenti
     for randomness in randomness_values:
-        result = run_experiment(randomness)
+        result = run_experiment(randomness, pipeline_script, pipeline_name)
         if result:
             results.append(result)
         time.sleep(1)  # Pausa tra esperimenti
     
     # Salva risultati
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    results_file = results_dir / f'randomness_experiment_{timestamp}.json'
+    results_file = results_dir / f'randomness_experiment_{pipeline_name}_{timestamp}.json'
     
     with open(results_file, 'w') as f:
         json.dump(results, f, indent=2)
@@ -128,7 +154,7 @@ def run_full_experiment():
         from visualization_analysis import SmartHotelsVisualizer
         
         # Aggiorna i dati del visualizer con i risultati sperimentali
-        visualizer = SmartHotelsVisualizer()
+        visualizer = SmartHotelsVisualizer(pipeline_name=pipeline_name)
         
         # Sostituisci con dati sperimentali
         visualizer.randomness_values = [r['randomness'] for r in results]
@@ -162,8 +188,15 @@ def print_summary(results):
     print(f"\n Miglior performance complessiva: RANDOMNESS = {best_overall['randomness']}")
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Esperimenti SmartHotels con diversi valori di RANDOMNESS')
+    parser.add_argument('--pipeline', choices=['sklearn', 'pytorch'], default='pytorch',
+                        help='Pipeline ML da utilizzare (default: pytorch)')
+    args = parser.parse_args()
+
+    pipeline_script = PIPELINE_SCRIPTS[args.pipeline]
+
     try:
-        results = run_full_experiment()
+        results = run_full_experiment(pipeline_script, args.pipeline)
         if results:
             print_summary(results)
     except KeyboardInterrupt:

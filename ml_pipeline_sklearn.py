@@ -12,13 +12,18 @@ import seaborn as sns
 from joblib import dump, load # Importato per salvare/caricare modelli
 
 # --- Configurazione dei Percorsi ---
-DATA_DIR = 'data'
+# Supporta variabili d'ambiente per integrazione con run_experiments.py
+DATASET_PATH = os.environ.get('DATASET_PATH', 'data/sklearn/reviews/hotel_reviews_synthetic_0.9.csv')
+PREDICTIONS_DIR = os.environ.get('PREDICTIONS_DIR', 'data/sklearn/predictions')
 MODELS_DIR = 'models'
-DATASET_FILENAME = 'hotel_reviews_synthetic.csv'
-DATASET_PATH = os.path.join(DATA_DIR, DATASET_FILENAME)
+
+# Estrae il valore di RANDOMNESS dal nome del file dataset (es. hotel_reviews_synthetic_0.9.csv → 0.9)
+_randomness_match = re.search(r'_(\d+\.\d+)\.csv$', DATASET_PATH)
+RANDOMNESS_VALUE = _randomness_match.group(1) if _randomness_match else 'unknown'
 
 # Crea le directory se non esistono
-os.makedirs(DATA_DIR, exist_ok=True)
+os.makedirs(os.path.dirname(DATASET_PATH), exist_ok=True)
+os.makedirs(PREDICTIONS_DIR, exist_ok=True)
 os.makedirs(MODELS_DIR, exist_ok=True)
 
 # Caricamento del dataset generato
@@ -142,17 +147,17 @@ test_results = pd.DataFrame({
     'sentiment_confidence': y_sent_proba
 })
 
-# Aggiornamento percorso di salvataggio
-OUTPUT_FILENAME = f'predictions_{pd.Timestamp.now().strftime("%Y%m%d_%H%M%S")}.csv'
-OUTPUT_PATH = os.path.join(DATA_DIR, OUTPUT_FILENAME)
+# Aggiornamento percorso di salvataggio (include valore RANDOMNESS e suffisso pipeline)
+OUTPUT_FILENAME = f'predictions_{pd.Timestamp.now().strftime("%Y%m%d_%H%M%S")}_R{RANDOMNESS_VALUE}_sklearn.csv'
+OUTPUT_PATH = os.path.join(PREDICTIONS_DIR, OUTPUT_FILENAME)
 
 test_results.to_csv(OUTPUT_PATH, index=False)
 print(f"\n✅ Risultati predizioni salvati in: {OUTPUT_PATH}")
 
 
 # --- Salvataggio Modelli ('models/') ---
-DEPT_MODEL_PATH = os.path.join(MODELS_DIR, 'department_classifier.joblib')
-SENT_MODEL_PATH = os.path.join(MODELS_DIR, 'sentiment_classifier.joblib')
+DEPT_MODEL_PATH = os.path.join(MODELS_DIR, 'department_classifier_sklearn.joblib')
+SENT_MODEL_PATH = os.path.join(MODELS_DIR, 'sentiment_classifier_sklearn.joblib')
 
 dump(dept_pipeline, DEPT_MODEL_PATH)
 dump(sent_pipeline, SENT_MODEL_PATH)
@@ -163,8 +168,8 @@ def generate_performance_visualizations(acc_dept, f1_dept, acc_sent, f1_sent):
     """Genera visualizzazioni delle performance attuali."""
     try:
         from pathlib import Path
-        plots_dir = Path('plots')
-        plots_dir.mkdir(exist_ok=True)
+        plots_dir = Path('plots/sklearn')
+        plots_dir.mkdir(parents=True, exist_ok=True)
         
         # Grafico performance attuale
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
@@ -200,10 +205,11 @@ def generate_performance_visualizations(acc_dept, f1_dept, acc_sent, f1_sent):
         
         plt.suptitle('SmartHotels: Performance Modelli ML', fontsize=16, fontweight='bold')
         plt.tight_layout()
-        plt.savefig(plots_dir / 'current_performance.png', dpi=300, bbox_inches='tight')
+        plt.savefig(plots_dir / 'current_performance_sklearn.png', dpi=300, bbox_inches='tight')
         plt.show()
         
-        print(f"📊 Visualizzazione performance salvata in: {plots_dir / 'current_performance.png'}")
+        print(f"📊 Visualizzazione performance salvata in: {plots_dir / 'current_performance_sklearn.png'}")
+        print(f"   (Directory: {plots_dir.absolute()})")
         
     except ImportError:
         print("⚠️  Matplotlib non disponibile per le visualizzazioni")

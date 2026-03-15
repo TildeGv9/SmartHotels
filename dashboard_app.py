@@ -3,61 +3,141 @@ import pandas as pd
 from joblib import load
 import time # Per l'export con timestamp
 import os # Necessario per path
+import re
 
 # Definisci le directory all'inizio della dashboard
 MODELS_DIR = 'models'
 
-# Carica i modelli e la funzione di preprocessing
-@st.cache_resource
-def load_models():
-    # Deve corrispondere alla funzione di preprocessing in ml_pipeline.py
-    def preprocess(text):
-        # Implementa qui la stessa logica di preprocess del modello
-        import re
-        text = str(text).lower()
-        text = re.sub(r'[^\w\s]', '', text)
-        text = re.sub(r'\d+', '', text)
-        text = re.sub(r'\s+', ' ', text).strip()
-        return text
+# --- Preprocessing (comune a entrambe le pipeline) ---
+def preprocess(text):
+    """Lowercasing, rimozione punteggiatura/numeri e spazi extra."""
+    text = str(text).lower()
+    text = re.sub(r'[^\w\s]', '', text)
+    text = re.sub(r'\d+', '', text)
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
 
+# --- Caricamento modelli sklearn ---
+@st.cache_resource
+def load_sklearn_models():
     try:
-        # Percorsi aggiornati
-        dept_path = os.path.join(MODELS_DIR, 'department_classifier.joblib')
-        sent_path = os.path.join(MODELS_DIR, 'sentiment_classifier.joblib')
-        
+        dept_path = os.path.join(MODELS_DIR, 'department_classifier_sklearn.joblib')
+        sent_path = os.path.join(MODELS_DIR, 'sentiment_classifier_sklearn.joblib')
         dept_clf = load(dept_path)
         sent_clf = load(sent_path)
-        return dept_clf, sent_clf, preprocess
+        return dept_clf, sent_clf
     except FileNotFoundError:
-        st.error(f"Errore: I file dei modelli non sono stati trovati nella cartella '{MODELS_DIR}'. Esegui prima 'ml_pipeline.py'.")
-        return None, None, None
+        return None, None
 
-dept_clf, sent_clf, preprocess = load_models()
+# --- Caricamento modelli PyTorch ---
+@st.cache_resource
+def load_pytorch_models():
+    try:
+        import torch
+        import torch.nn as nn
 
-# --- Funzione di Predizione Singola ---
-def predict_review(title, body):
-    if dept_clf is None or sent_clf is None:
-        return None, None, None, None
-    
-    full_text = preprocess(title + ' ' + body)
-    
-    # Previsione Reparto
-    predicted_dept = dept_clf.predict([full_text])[0]
-    
-    # Previsione Sentiment
-    predicted_sent = sent_clf.predict([full_text])[0]
-    
-    # Probabilità Sentiment: confidenza della classe predetta (max tra le 3 classi)
-    proba_array = sent_clf.predict_proba([full_text])[0]
-    confidence = proba_array.max()
-    # Dizionario con le probabilità per ogni classe
-    proba_dict = dict(zip(sent_clf.classes_, proba_array))
+        # Definizione architettura (deve corrispondere a ml_pipeline_pytorch.py)
+        class TextClassifier(nn.Module):
+            def __init__(self, input_size, num_classes, hidden_size=128, dropout=0.3):
+                super(TextClassifier, self).__init__()
+                self.network = nn.Sequential(
+                    nn.Linear(input_size, hidden_size),
+                    nn.ReLU(),
+                    nn.Dropout(dropout),
+                    nn.Linear(hidden_size, 64),
+                    nn.ReLU(),
+                    nn.Dropout(dropout),
+                    nn.Linear(64, num_classes)
+                )
 
-    return predicted_dept, predicted_sent, confidence, proba_dict, full_text
+            def forward(self, x):
+                return self.network(x)
+
+        dept_ckpt = torch.load(os.path.join(MODELS_DIR, 'department_pytorch.pth'),
+                               map_location='cpu', weights_only=False)
+        sent_ckpt = torch.load(os.path.join(MODELS_DIR, 'sentiment_pytorch.pth'),
+                               map_location='cpu', weights_only=False)
+
+        # Ricostruisci i modelli dall'architettura e pesi salvati
+        dept_vectorizer = dept_ckpt['vectorizer']
+        dept_encoder = dept_ckpt['encoder']
+        input_size_dept = len(dept_vectorizer.vocabulary_)
+        dept_model = TextClassifier(input_size_dept, len(dept_encoder.classes_))
+        dept_model.load_state_dict(dept_ckpt['model_state_dict'])
+        dept_model.eval()
+
+        sent_vectorizer = sent_ckpt['vectorizer']
+        sent_encoder = sent_ckpt['encoder']
+        input_size_sent = len(sent_vectorizer.vocabulary_)
+        sent_model = TextClassifier(input_size_sent, len(sent_encoder.classes_))
+        sent_model.load_state_dict(sent_ckpt['model_state_dict'])
+        sent_model.eval()
+
+        return dept_model, sent_model, dept_vectorizer, sent_vectorizer, dept_encoder, sent_encoder
+    except (FileNotFoundError, ImportError):
+        return None, None, None, None, None, None
+
+# --- Funzioni di predizione ---
+def predict_sklearn(texts, dept_clf, sent_clf):
+    """Predizione con modelli sklearn. Accetta lista di testi preprocessati."""
+    dept_preds = dept_clf.predict(texts)
+    sent_preds = sent_clf.predict(texts)
+    sent_proba = sent_clf.predict_proba(texts)
+    confidences = sent_proba.max(axis=1)
+    proba_dicts = [dict(zip(sent_clf.classes_, row)) for row in sent_proba]
+    return dept_preds, sent_preds, confidences, proba_dicts
+
+def predict_pytorch(texts, dept_model, sent_model, dept_vec, sent_vec, dept_enc, sent_enc):
+    """Predizione con modelli PyTorch. Accetta lista di testi preprocessati."""
+    import torch
+
+    # TF-IDF + forward pass per reparto
+    X_dept = torch.FloatTensor(dept_vec.transform(texts).toarray())
+    with torch.no_grad():
+        dept_out = dept_model(X_dept)
+        dept_preds = dept_enc.inverse_transform(torch.argmax(dept_out, dim=1).numpy())
+
+    # TF-IDF + forward pass per sentiment
+    X_sent = torch.FloatTensor(sent_vec.transform(texts).toarray())
+    with torch.no_grad():
+        sent_out = sent_model(X_sent)
+        sent_proba = torch.softmax(sent_out, dim=1).numpy()
+        sent_preds = sent_enc.inverse_transform(torch.argmax(sent_out, dim=1).numpy())
+
+    confidences = sent_proba.max(axis=1)
+    proba_dicts = [dict(zip(sent_enc.classes_, row)) for row in sent_proba]
+    return dept_preds, sent_preds, confidences, proba_dicts
 
 # --- Interfaccia Streamlit ---
 st.set_page_config(layout="wide")
 st.title("🏨 Smistamento Recensioni e Analisi Sentiment con ML")
+
+# Sidebar: selezione pipeline
+st.sidebar.header("⚙️ Configurazione")
+pipeline_choice = st.sidebar.radio(
+    "Pipeline ML da utilizzare:",
+    ["scikit-learn", "PyTorch"],
+    index=0,
+    help="Seleziona il framework dei modelli da caricare per le predizioni."
+)
+
+# Caricamento modelli in base alla scelta
+if pipeline_choice == "scikit-learn":
+    dept_clf, sent_clf = load_sklearn_models()
+    models_loaded = dept_clf is not None
+    if not models_loaded:
+        st.sidebar.error("Modelli sklearn non trovati. Esegui prima `ml_pipeline_sklearn.py`.")
+    else:
+        st.sidebar.success("Modelli scikit-learn caricati.")
+else:
+    pytorch_result = load_pytorch_models()
+    dept_model, sent_model, dept_vec, sent_vec, dept_enc, sent_enc = pytorch_result
+    models_loaded = dept_model is not None
+    if not models_loaded:
+        st.sidebar.error("Modelli PyTorch non trovati. Esegui prima `ml_pipeline_pytorch.py`.")
+    else:
+        st.sidebar.success("Modelli PyTorch caricati.")
+
 st.markdown("---")
 
 # Sezione 1: Predizione Singola
@@ -69,9 +149,23 @@ with st.form("single_review_form"):
 
     if submitted:
         if body:
-            dept, sent, confidence, proba_dict, processed = predict_review(title, body)
+            if not models_loaded:
+                st.error("Nessun modello disponibile. Controlla la configurazione nella sidebar.")
+            else:
+                full_text = preprocess(title + ' ' + body)
 
-            if dept:
+                if pipeline_choice == "scikit-learn":
+                    dept_preds, sent_preds, confidences, proba_dicts = predict_sklearn(
+                        [full_text], dept_clf, sent_clf)
+                else:
+                    dept_preds, sent_preds, confidences, proba_dicts = predict_pytorch(
+                        [full_text], dept_model, sent_model, dept_vec, sent_vec, dept_enc, sent_enc)
+
+                dept = dept_preds[0]
+                sent = sent_preds[0]
+                confidence = confidences[0]
+                proba_dict = proba_dicts[0]
+
                 # Icone per il sentiment
                 sent_map = {'pos': ('🟢 Positivo', 'green'), 'neg': ('🔴 Negativo', 'red'), 'neu': ('🟡 Neutro', 'orange')}
                 sent_emoji, color = sent_map.get(sent, ('⚪ Sconosciuto', 'gray'))
@@ -81,10 +175,10 @@ with st.form("single_review_form"):
                 st.markdown(f"**Reparto Consigliato:** **<span style='font-size: 24px;'>{dept}</span>**", unsafe_allow_html=True)
                 st.markdown(f"**Sentiment Stimato:** **<span style='color:{color}; font-size: 24px;'>{sent_emoji}</span>**", unsafe_allow_html=True)
                 st.info(f"Confidenza predizione: **{confidence:.2f}**")
+                st.caption(f"Pipeline: **{pipeline_choice}**")
                 # Dettaglio probabilità per classe
                 proba_text = " | ".join([f"P({cls}): {p:.2f}" for cls, p in sorted(proba_dict.items())])
                 st.caption(proba_text)
-                # st.caption(f"Testo preprocessato: {processed}")
 
         else:
             st.warning("Per favore, inserisci il testo della recensione.")
@@ -98,29 +192,35 @@ uploaded_file = st.file_uploader("Carica un file CSV (deve contenere colonne 'ti
 if uploaded_file is not None:
     try:
         batch_df = pd.read_csv(uploaded_file)
-        
+
         # Verifica colonne
         if 'title' not in batch_df.columns or 'body' not in batch_df.columns:
             st.error("Il file CSV deve contenere le colonne 'title' e 'body'.")
+        elif not models_loaded:
+            st.error("Nessun modello disponibile. Controlla la configurazione nella sidebar.")
         else:
             st.success(f"File caricato correttamente. Trovate {len(batch_df)} recensioni.")
-            
+
             if st.button("Esegui Predizione Batch"):
                 with st.spinner('Analisi in corso...'):
                     # Preprocessing batch
                     batch_df['processed_text'] = (batch_df['title'] + ' ' + batch_df['body']).apply(preprocess)
-                    
-                    # Predizioni
-                    batch_df['predicted_department'] = dept_clf.predict(batch_df['processed_text'])
-                    batch_df['predicted_sentiment'] = sent_clf.predict(batch_df['processed_text'])
-                    
-                    # Confidenza Sentiment (probabilità massima tra le classi)
-                    proba_array = sent_clf.predict_proba(batch_df['processed_text'])
-                    batch_df['sentiment_confidence'] = proba_array.max(axis=1)
+                    texts = batch_df['processed_text'].tolist()
+
+                    if pipeline_choice == "scikit-learn":
+                        dept_preds, sent_preds, confidences, _ = predict_sklearn(
+                            texts, dept_clf, sent_clf)
+                    else:
+                        dept_preds, sent_preds, confidences, _ = predict_pytorch(
+                            texts, dept_model, sent_model, dept_vec, sent_vec, dept_enc, sent_enc)
+
+                    batch_df['predicted_department'] = dept_preds
+                    batch_df['predicted_sentiment'] = sent_preds
+                    batch_df['sentiment_confidence'] = confidences
 
                     st.subheader("Risultati del Batch")
                     st.dataframe(batch_df[['title', 'body', 'predicted_department', 'predicted_sentiment', 'sentiment_confidence']].head())
-                    
+
                     # Esporta risultati con timestamp
                     timestamp = time.strftime("%Y%m%d_%H%M%S")
                     csv_output = batch_df.to_csv(index=False).encode('utf-8')

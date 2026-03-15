@@ -11,12 +11,13 @@ sns.set_palette("husl")
 class SmartHotelsVisualizer:
     """Classe per generare visualizzazioni dell'analisi RANDOMNESS per SmartHotels."""
     
-    def __init__(self):
+    def __init__(self, pipeline_name=None):
         # Dati sperimentali raccolti
         # Valori statici per l'esempio, verrano sostituiti con dati provenienti dagli esperimenti desiderati (run_experiments.py)
         self.randomness_values = [0.2, 0.4, 0.9]
         self.reparto_accuracy = [0.76, 0.57, 0.31]
         self.sentiment_accuracy = [0.81, 0.70, 0.93]
+        self.pipeline_name = pipeline_name
         
         # F1-scores dettagliati per reparto
         self.f1_data = {
@@ -25,9 +26,15 @@ class SmartHotelsVisualizer:
             0.9: {'F&B': 0.35, 'Housekeeping': 0.30, 'Reception': 0.28}
         }
         
-        # Crea cartella per i grafici
-        self.plots_dir = Path('plots')
-        self.plots_dir.mkdir(exist_ok=True)
+        # Crea cartella per i grafici (sottocartella per pipeline se specificata)
+        self.plots_dir = Path('plots') / self.pipeline_name if self.pipeline_name else Path('plots')
+        self.plots_dir.mkdir(parents=True, exist_ok=True)
+
+    def _plot_filename(self, base_name):
+        """Restituisce il nome del file con suffisso pipeline se specificato."""
+        if self.pipeline_name:
+            return f'{base_name}_{self.pipeline_name}.png'
+        return f'{base_name}.png'
     
     def plot_accuracy_comparison(self, save=True):
         """Grafico 1: Confronto Accuracy tra Reparto e Sentiment."""
@@ -64,7 +71,7 @@ class SmartHotelsVisualizer:
         
         plt.tight_layout()
         if save:
-            plt.savefig(self.plots_dir / 'accuracy_comparison.png', dpi=300, bbox_inches='tight')
+            plt.savefig(self.plots_dir / self._plot_filename('accuracy_comparison'), dpi=300, bbox_inches='tight')
         plt.show()
     
     def plot_paradox_visualization(self, save=True):
@@ -105,7 +112,7 @@ class SmartHotelsVisualizer:
         
         plt.tight_layout()
         if save:
-            plt.savefig(self.plots_dir / 'paradox_visualization.png', dpi=300, bbox_inches='tight')
+            plt.savefig(self.plots_dir / self._plot_filename('paradox_visualization'), dpi=300, bbox_inches='tight')
         plt.show()
     
     def plot_f1_heatmap(self, save=True):
@@ -130,7 +137,7 @@ class SmartHotelsVisualizer:
         
         plt.tight_layout()
         if save:
-            plt.savefig(self.plots_dir / 'f1_heatmap.png', dpi=300, bbox_inches='tight')
+            plt.savefig(self.plots_dir / self._plot_filename('f1_heatmap'), dpi=300, bbox_inches='tight')
         plt.show()
     
     def plot_dashboard(self, save=True):
@@ -193,7 +200,7 @@ class SmartHotelsVisualizer:
         plt.tight_layout()
         
         if save:
-            plt.savefig(self.plots_dir / 'dashboard_complete.png', dpi=300, bbox_inches='tight')
+            plt.savefig(self.plots_dir / self._plot_filename('dashboard_complete'), dpi=300, bbox_inches='tight')
         plt.show()
     
     def generate_all_plots(self):

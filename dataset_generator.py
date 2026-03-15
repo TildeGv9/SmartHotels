@@ -150,30 +150,6 @@ def generate_review(department, sentiment):
     else:
         title = random.choice([t for t in TITLES if 'Problemi' in t or 'dimenticare' in t or 'disastro' in t or 'Delusione' in t])
         
-    # Aggiunge un caso ambiguo o misto
-    if random.random() < RANDOMNESS: 
-        ambiguous_messages = {
-            'Housekeeping': [
-                " Purtroppo la reception è stata meno efficiente.",
-                " Solo il servizio alla reception ha deluso le aspettative.",
-                " Unico neo: lentezza al check-in.",
-                " Peccato per l'accoglienza poco calorosa alla reception."
-            ],
-            'Reception': [
-                " Purtroppo il ristorante non è all'altezza del resto.",
-                " Solo la colazione è stata deludente.",
-                " Unico punto debole: la qualità del cibo.",
-                " Peccato per il servizio lento al ristorante."
-            ],
-            'F&B': [
-                " Purtroppo le pulizie in camera lasciano a desiderare.",
-                " Solo la pulizia del bagno non è stata perfetta.",
-                " Unico neo: la stanza non era impeccabile.",
-                " Peccato per le lenzuola non perfettamente fresche."
-            ]
-        }
-        body += random.choice(ambiguous_messages[department])
-    
     return title, body.strip()
 
 def create_mixed_review(target_dept, target_sent):
@@ -259,7 +235,7 @@ df = shuffle(df, random_state=42).reset_index(drop=True)
 
 # ⚠️ Aggiunge errori realistici al dataset
 print("🔄 Aggiunta di errori realistici al dataset...")
-df = add_realistic_errors(df, error_rate=RANDOMNESS)  # RANDOMNESS % di errori intenzionali
+df = add_realistic_errors(df, error_rate=RANDOMNESS) 
 
 df['id'] = df.index + 1 # Ri-assegna ID sequenziale dopo lo shuffle
 

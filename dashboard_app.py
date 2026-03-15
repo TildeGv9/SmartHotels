@@ -47,16 +47,13 @@ def predict_review(title, body):
     # Previsione Sentiment
     predicted_sent = sent_clf.predict([full_text])[0]
     
-    # Probabilità Sentiment (probabilità di 'pos' - è il secondo elemento dell'array se le classi sono ['neg', 'pos'])
+    # Probabilità Sentiment: confidenza della classe predetta (max tra le 3 classi)
     proba_array = sent_clf.predict_proba([full_text])[0]
-    
-    # Assumendo che le classi di sentiment siano ['neg', 'pos']
-    if sent_clf.classes_[1] == 'pos':
-        pos_proba = proba_array[1]
-    else: # Gestione se l'ordine fosse diverso
-        pos_proba = proba_array[0] 
-        
-    return predicted_dept, predicted_sent, pos_proba, full_text
+    confidence = proba_array.max()
+    # Dizionario con le probabilità per ogni classe
+    proba_dict = dict(zip(sent_clf.classes_, proba_array))
+
+    return predicted_dept, predicted_sent, confidence, proba_dict, full_text
 
 # --- Interfaccia Streamlit ---
 st.set_page_config(layout="wide")
@@ -72,18 +69,21 @@ with st.form("single_review_form"):
 
     if submitted:
         if body:
-            dept, sent, proba, processed = predict_review(title, body)
-            
+            dept, sent, confidence, proba_dict, processed = predict_review(title, body)
+
             if dept:
                 # Icone per il sentiment
-                sent_emoji = "🟢 Positivo" if sent == 'pos' else "🔴 Negativo"
-                color = "green" if sent == 'pos' else "red"
-                
+                sent_map = {'pos': ('🟢 Positivo', 'green'), 'neg': ('🔴 Negativo', 'red'), 'neu': ('🟡 Neutro', 'orange')}
+                sent_emoji, color = sent_map.get(sent, ('⚪ Sconosciuto', 'gray'))
+
                 # Visualizzazione dei risultati
                 st.subheader("Risultato dell'Analisi")
                 st.markdown(f"**Reparto Consigliato:** **<span style='font-size: 24px;'>{dept}</span>**", unsafe_allow_html=True)
                 st.markdown(f"**Sentiment Stimato:** **<span style='color:{color}; font-size: 24px;'>{sent_emoji}</span>**", unsafe_allow_html=True)
-                st.info(f"Probabilità che sia Positivo (P(pos)): **{proba:.2f}**")
+                st.info(f"Confidenza predizione: **{confidence:.2f}**")
+                # Dettaglio probabilità per classe
+                proba_text = " | ".join([f"P({cls}): {p:.2f}" for cls, p in sorted(proba_dict.items())])
+                st.caption(proba_text)
                 # st.caption(f"Testo preprocessato: {processed}")
 
         else:
@@ -114,14 +114,12 @@ if uploaded_file is not None:
                     batch_df['predicted_department'] = dept_clf.predict(batch_df['processed_text'])
                     batch_df['predicted_sentiment'] = sent_clf.predict(batch_df['processed_text'])
                     
-                    # Probabilità Sentiment
+                    # Confidenza Sentiment (probabilità massima tra le classi)
                     proba_array = sent_clf.predict_proba(batch_df['processed_text'])
-                    # Assumendo che le classi di sentiment siano ['neg', 'pos']
-                    pos_proba_index = 1 if sent_clf.classes_[1] == 'pos' else 0
-                    batch_df['positive_proba'] = proba_array[:, pos_proba_index]
-                    
+                    batch_df['sentiment_confidence'] = proba_array.max(axis=1)
+
                     st.subheader("Risultati del Batch")
-                    st.dataframe(batch_df[['title', 'body', 'predicted_department', 'predicted_sentiment', 'positive_proba']].head())
+                    st.dataframe(batch_df[['title', 'body', 'predicted_department', 'predicted_sentiment', 'sentiment_confidence']].head())
                     
                     # Esporta risultati con timestamp
                     timestamp = time.strftime("%Y%m%d_%H%M%S")

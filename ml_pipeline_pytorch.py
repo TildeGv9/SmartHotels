@@ -21,6 +21,10 @@ DATASET_PATH = os.path.join(DATA_DIR, DATASET_FILENAME)
 os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(MODELS_DIR, exist_ok=True)
 
+# Riproducibilità
+torch.manual_seed(42)
+np.random.seed(42)
+
 # Controlla se GPU è disponibile
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"🔧 Usando dispositivo: {device}")
@@ -58,7 +62,8 @@ y_sent_encoded = sent_encoder.fit_transform(y_sent)
 
 # Split
 X_train, X_test, y_dept_train, y_dept_test, y_sent_train, y_sent_test = train_test_split(
-    X, y_dept_encoded, y_sent_encoded, test_size=0.2, random_state=42
+    X, y_dept_encoded, y_sent_encoded, test_size=0.2, random_state=42,
+    stratify=np.column_stack([y_dept_encoded, y_sent_encoded])
 )
 
 # 3. Feature Extraction (TF-IDF)
@@ -226,7 +231,7 @@ test_results = pd.DataFrame({
     'predicted_department': y_dept_pred_decoded,
     'true_sentiment': sent_encoder.inverse_transform(y_sent_test),
     'predicted_sentiment': y_sent_pred_decoded,
-    'positive_proba': y_sent_proba[:, 1]
+    'sentiment_confidence': y_sent_proba.max(axis=1)
 })
 
 OUTPUT_FILENAME = f'predictions_pytorch_{pd.Timestamp.now().strftime("%Y%m%d_%H%M%S")}.csv'

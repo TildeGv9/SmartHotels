@@ -28,15 +28,15 @@ La cartella del progetto è organizzata come segue:
 
 ```
 SmartHotels/
-├── dataset_generator.py    # 1. Genera il dataset sintetico con parametro RANDOMNESS.
+├── dataset_generator.py           # 1. Genera il dataset con parametro RANDOMNESS.
 ├── ml_pipeline.py                 # 2. Addestra, valuta e salva i modelli per il dataset presente `data/hotel_reviews_synthetic.csv`
 ├── dashboard_app.py               # 3. Interfaccia utente interattiva (Streamlit).
 ├── visualization_analysis.py      # 4. Grafici e analisi del parametro RANDOMNESS.
 ├── run_experiments.py             # 5. Esperimenti automatici multi-RANDOMNESS.
-├── requirements.txt               # Dipendenze Python.
+├── dependencies.txt               # Dipendenze Python.
 ├── README.md
 ├── data/                          # Dataset CSV e risultati delle predizioni.
-├── models/                        # Modelli ML salvati (.joblib).
+├── models/                        # Modelli ML salvati (.joblib e .pth).
 ├── plots/                         # Grafici e visualizzazioni generate.
 │   ├── accuracy_comparison.png
 │   ├── paradox_visualization.png
@@ -80,7 +80,7 @@ source venv/bin/activate
 - **Installa le dipendenze** necessarie:
 
   ```bash
-  pip install -r requirements.txt
+  pip install -r dependencies.txt
   ```
 
 ### 2. Generazione del Dataset
@@ -116,7 +116,7 @@ Questo script esegue il preprocessing, addestra i due classificatori, valuta le 
 - **Metriche dettagliate** (Accuracy, F1-Macro, Classification Report)
 - **Matrici di Confusione**
 - **Grafico performance** salvato in `plots/current_performance.png`
-- **Modelli salvati** in `models/` (file `.joblib`)
+- **Modelli salvati** in `models/` (file `.joblib` e `.pth`)
 - **Risultati test** in `data/predictions_YYYYMMDD_HHMMSS.csv`
 - **Analisi errori** con esempi di classificazioni errate
 

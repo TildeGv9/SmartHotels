@@ -50,6 +50,9 @@ X_train, X_test, y_dept_train, y_dept_test, y_sent_train, y_sent_test = train_te
 )
 
 # 3. Pipeline ML (Feature Engineering + Modello)
+# Nota: la tokenizzazione del testo è gestita internamente da TfidfVectorizer,
+# che suddivide il testo in token (unigrammi e bigrammi) durante il fit/transform.
+
 # Pipeline di Classificazione Reparto (Department)
 dept_pipeline = Pipeline([
     ('tfidf', TfidfVectorizer(ngram_range=(1, 2))),  # Uso anche bigrammi
@@ -70,10 +73,10 @@ y_dept_pred = dept_pipeline.predict(X_test)
 print("\n--- Addestramento Modello Sentiment ---")
 sent_pipeline.fit(X_train, y_sent_train)
 y_sent_pred = sent_pipeline.predict(X_test)
-y_sent_proba = sent_pipeline.predict_proba(X_test)[:, 1] # Probabilità di 'pos'
+# Confidenza: probabilità massima tra le 3 classi (pos/neg/neu)
+y_sent_proba = sent_pipeline.predict_proba(X_test).max(axis=1)
 
 # --- 4. Valutazione ---
-
 print("\n## 📊 Valutazione Modelli\n")
 
 # Funzione di valutazione (omessa per brevità, resta invariata)
@@ -136,7 +139,7 @@ test_results = pd.DataFrame({
     'predicted_department': y_dept_pred,
     'true_sentiment': y_sent_test,
     'predicted_sentiment': y_sent_pred,
-    'positive_proba': y_sent_proba
+    'sentiment_confidence': y_sent_proba
 })
 
 # Aggiornamento percorso di salvataggio

@@ -44,10 +44,10 @@ except FileNotFoundError:
 
 # 1. Preprocessing
 def preprocess(text):
-    text = str(text).lower()
-    text = re.sub(r'[^\w\s]', '', text)
-    text = re.sub(r'\d+', '', text)
-    text = re.sub(r'\s+', ' ', text).strip()
+    text = str(text).lower() # Normalizza in minuscolo
+    text = re.sub(r'[^\w\s]', '', text) # Rimuove tutta la punteggiatura
+    text = re.sub(r'\d+', '', text) # Rimuove sequenze numeriche
+    text = re.sub(r'\s+', ' ', text).strip() # Collassa spazi multipli
     return text
 
 df['text'] = df['title'] + ' ' + df['body']
@@ -268,17 +268,27 @@ def generate_performance_visualizations(acc_dept, f1_dept, acc_sent, f1_sent):
 generate_performance_visualizations(acc_dept, f1_dept, acc_sent, f1_sent)
 
 # --- Visualizzazioni ---
-def plot_confusion_matrix(cm, labels, title):
+def plot_confusion_matrix(cm, labels, title, filename):
+    from pathlib import Path
+    plots_dir = Path('plots/pytorch/confusionMatrix')
+    plots_dir.mkdir(parents=True, exist_ok=True)
     plt.figure(figsize=(8, 6))
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
                 xticklabels=labels, yticklabels=labels)
     plt.title(title)
     plt.ylabel('Vero Etichetta')
     plt.xlabel('Predetto Etichetta')
+    plt.tight_layout()
+    plt.savefig(plots_dir / filename, dpi=300, bbox_inches='tight')
     plt.show()
+    print(f"📊 Matrice di confusione salvata in: {plots_dir / filename}")
 
-plot_confusion_matrix(cm_dept, dept_encoder.classes_, 'Matrice di Confusione - Reparto (PyTorch)')
-plot_confusion_matrix(cm_sent, sent_encoder.classes_, 'Matrice di Confusione - Sentiment (PyTorch)')
+plot_confusion_matrix(cm_dept, dept_encoder.classes_,
+                      'Matrice di Confusione - Reparto (PyTorch)',
+                      f'confusion_matrix_dept_R{RANDOMNESS_VALUE}_pytorch.png')
+plot_confusion_matrix(cm_sent, sent_encoder.classes_,
+                      'Matrice di Confusione - Sentiment (PyTorch)',
+                      f'confusion_matrix_sent_R{RANDOMNESS_VALUE}_pytorch.png')
 
 # --- Salvataggio Predizioni ---
 y_dept_pred_decoded = dept_encoder.inverse_transform(y_dept_pred)

@@ -110,6 +110,41 @@ def predict_pytorch(texts, dept_model, sent_model, dept_vec, sent_vec, dept_enc,
 
 # --- Interfaccia Streamlit ---
 st.set_page_config(layout="wide")
+
+# CSS personalizzato
+st.markdown("""
+<style>
+    /* Bordi e accenti azzurri su card/form */
+    div[data-testid="stForm"] {
+        border: 1px solid #00AEEF33;
+        border-radius: 8px;
+        padding: 16px;
+    }
+    /* Separatore orizzontale */
+    hr {
+        border-color: #00AEEF44;
+    }
+    /* Intestazioni sezione */
+    h2, h3 {
+        color: #00AEEF !important;
+    }
+    /* Badge sidebar (success/error) */
+    div[data-testid="stSidebar"] .stAlert {
+        border-radius: 6px;
+    }
+    /* Pulsanti: bordo azzurro al hover */
+    div.stButton > button:hover {
+        border-color: #00AEEF;
+        color: #00AEEF;
+    }
+    /* Dataframe header */
+    thead tr th {
+        background-color: #0D1B2A !important;
+        color: #00AEEF !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 st.title("🏨 Smistamento Recensioni e Analisi Sentiment con ML")
 
 # Sidebar: selezione pipeline
@@ -141,14 +176,20 @@ else:
 st.markdown("---")
 
 # Sezione 1: Predizione Singola
-st.header("1. Analizza una Recensione Singola")
+st.header("1. Analizza una Recensione Singola 💬")
 with st.form("single_review_form"):
     title = st.text_input("Titolo della Recensione (es. 'Servizio veloce')", max_chars=50)
     body = st.text_area("Testo della Recensione (es. 'Camera pulita ma check-out lento')", height=150)
     submitted = st.form_submit_button("Analizza")
 
     if submitted:
-        if body:
+        if not title and not body:
+            st.error("Titolo e testo della recensione sono obbligatori.")
+        elif not title:
+            st.error("Il titolo della recensione è obbligatorio.")
+        elif not body:
+            st.error("Il testo della recensione è obbligatorio.")
+        else:
             if not models_loaded:
                 st.error("Nessun modello disponibile. Controlla la configurazione nella sidebar.")
             else:
@@ -166,27 +207,35 @@ with st.form("single_review_form"):
                 confidence = confidences[0]
                 proba_dict = proba_dicts[0]
 
+                # Soglia minima di confidenza: con 3 classi il caso random è ~0.33
+                CONFIDENCE_THRESHOLD = 0.45
+
                 # Icone per il sentiment
                 sent_map = {'pos': ('🟢 Positivo', 'green'), 'neg': ('🔴 Negativo', 'red'), 'neu': ('🟡 Neutro', 'orange')}
                 sent_emoji, color = sent_map.get(sent, ('⚪ Sconosciuto', 'gray'))
 
                 # Visualizzazione dei risultati
                 st.subheader("Risultato dell'Analisi")
-                st.markdown(f"**Reparto Consigliato:** **<span style='font-size: 24px;'>{dept}</span>**", unsafe_allow_html=True)
-                st.markdown(f"**Sentiment Stimato:** **<span style='color:{color}; font-size: 24px;'>{sent_emoji}</span>**", unsafe_allow_html=True)
-                st.info(f"Confidenza predizione: **{confidence:.2f}**")
+
+                if confidence < CONFIDENCE_THRESHOLD:
+                    st.warning(
+                        f"⚠️ Testo non riconosciuto — confidenza troppo bassa ({confidence:.2f}). "
+                        "Inserisci una recensione più descrittiva."
+                    )
+                else:
+                    st.markdown(f"**Reparto Consigliato:** **<span style='font-size: 24px;'>{dept}</span>**", unsafe_allow_html=True)
+                    st.markdown(f"**Sentiment Stimato:** **<span style='color:{color}; font-size: 24px;'>{sent_emoji}</span>**", unsafe_allow_html=True)
+                    st.info(f"Confidenza predizione: **{confidence:.2f}**")
+
                 st.caption(f"Pipeline: **{pipeline_choice}**")
                 # Dettaglio probabilità per classe
                 proba_text = " | ".join([f"P({cls}): {p:.2f}" for cls, p in sorted(proba_dict.items())])
                 st.caption(proba_text)
 
-        else:
-            st.warning("Per favore, inserisci il testo della recensione.")
-
 st.markdown("---")
 
 # Sezione 2: Predizione Batch (Upload CSV)
-st.header("2. Predizione Batch (Carica CSV)")
+st.header("2. Predizione Batch (Carica CSV) 🔗")
 uploaded_file = st.file_uploader("Carica un file CSV (deve contenere colonne 'title' e 'body')", type=["csv"])
 
 if uploaded_file is not None:

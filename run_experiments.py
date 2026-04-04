@@ -153,14 +153,9 @@ def run_full_experiment(pipeline_script, pipeline_name):
     try:
         from visualization_analysis import SmartHotelsVisualizer
         
-        # Aggiorna i dati del visualizer con i risultati sperimentali
+        # Il visualizer carica automaticamente il JSON appena salvato
         visualizer = SmartHotelsVisualizer(pipeline_name=pipeline_name)
-        
-        # Sostituisci con dati sperimentali
-        visualizer.randomness_values = [r['randomness'] for r in results]
-        visualizer.reparto_accuracy = [r['dept_accuracy'] for r in results]
-        visualizer.sentiment_accuracy = [r['sent_accuracy'] for r in results]
-        
+
         print("\nGenerando visualizzazioni con dati sperimentali...")
         visualizer.generate_all_plots()
         
@@ -189,8 +184,8 @@ def print_summary(results):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Esperimenti SmartHotels con diversi valori di RANDOMNESS')
-    parser.add_argument('--pipeline', choices=['sklearn', 'pytorch'], default='pytorch',
-                        help='Pipeline ML da utilizzare (default: pytorch)')
+    parser.add_argument('--pipeline', choices=['sklearn', 'pytorch'], default='sklearn',
+                        help='Pipeline ML da utilizzare (default: sklearn)')
     args = parser.parse_args()
 
     pipeline_script = PIPELINE_SCRIPTS[args.pipeline]

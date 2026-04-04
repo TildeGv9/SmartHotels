@@ -1,0 +1,42 @@
+[
+  {
+    "randomness": 0.1,
+    "dept_accuracy": 0.8889,
+    "sent_accuracy": 0.8556,
+    "dept_f1": 0.8881,
+    "sent_f1": 0.8574,
+    "timestamp": "2026-04-04T17:52:36.679779"
+  },
+  {
+    "randomness": 0.3,
+    "dept_accuracy": 0.6778,
+    "sent_accuracy": 0.6889,
+    "dept_f1": 0.6803,
+    "sent_f1": 0.695,
+    "timestamp": "2026-04-04T17:52:43.736845"
+  },
+  {
+    "randomness": 0.5,
+    "dept_accuracy": 0.4111,
+    "sent_accuracy": 0.6556,
+    "dept_f1": 0.4081,
+    "sent_f1": 0.6666,
+    "timestamp": "2026-04-04T17:52:51.099604"
+  },
+  {
+    "randomness": 0.7,
+    "dept_accuracy": 0.2667,
+    "sent_accuracy": 0.8,
+    "dept_f1": 0.2632,
+    "sent_f1": 0.8049,
+    "timestamp": "2026-04-04T17:52:58.836367"
+  },
+  {
+    "randomness": 0.9,
+    "dept_accuracy": 0.3333,
+    "sent_accuracy": 0.9,
+    "dept_f1": 0.3029,
+    "sent_f1": 0.9011,
+    "timestamp": "2026-04-04T17:53:06.471605"
+  }
+]

@@ -36,10 +36,10 @@ except FileNotFoundError:
 # 1. Preprocessing Semplice
 def preprocess(text):
     """Lowercasing, rimozione punteggiatura/numeri e spazi extra."""
-    text = str(text).lower()
-    text = re.sub(r'[^\w\s]', '', text)  # Rimuove la punteggiatura
-    text = re.sub(r'\d+', '', text)     # Rimuove i numeri
-    text = re.sub(r'\s+', ' ', text).strip() # Rimuove spazi extra
+    text = str(text).lower() # Normalizza in minuscolo
+    text = re.sub(r'[^\w\s]', '', text) # Rimuove tutta la punteggiatura
+    text = re.sub(r'\d+', '', text) # Rimuove sequenze numeriche
+    text = re.sub(r'\s+', ' ', text).strip() # Collassa spazi multipli
     return text
 
 df['text'] = df['title'] + ' ' + df['body']
@@ -84,7 +84,7 @@ y_sent_proba = sent_pipeline.predict_proba(X_test).max(axis=1)
 # --- 4. Valutazione ---
 print("\n## 📊 Valutazione Modelli\n")
 
-# Funzione di valutazione (omessa per brevità, resta invariata)
+# Funzione di valutazione comune per entrambi i modelli
 def evaluate_model(y_true, y_pred, name):
     acc = accuracy_score(y_true, y_pred)
     f1_macro = f1_score(y_true, y_pred, average='macro', zero_division=0)
@@ -104,18 +104,28 @@ cm_dept, acc_dept, f1_dept = evaluate_model(y_dept_test, y_dept_pred, "Classific
 cm_sent, acc_sent, f1_sent = evaluate_model(y_sent_test, y_sent_pred, "Analisi Sentiment")
 
 
-# --- Matrici di Confusione e Visualizzazione (omessa per brevità, resta invariata) ---
-def plot_confusion_matrix(cm, labels, title):
+# --- Matrici di Confusione ---
+def plot_confusion_matrix(cm, labels, title, filename):
+    from pathlib import Path
+    plots_dir = Path('plots/sklearn/confusionMatrix')
+    plots_dir.mkdir(parents=True, exist_ok=True)
     plt.figure(figsize=(8, 6))
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
                 xticklabels=labels, yticklabels=labels)
     plt.title(title)
     plt.ylabel('Vero Etichetta')
     plt.xlabel('Predetto Etichetta')
+    plt.tight_layout()
+    plt.savefig(plots_dir / filename, dpi=300, bbox_inches='tight')
     plt.show()
+    print(f"📊 Matrice di confusione salvata in: {plots_dir / filename}")
 
-plot_confusion_matrix(cm_dept, dept_pipeline.classes_, 'Matrice di Confusione - Reparto')
-plot_confusion_matrix(cm_sent, sent_pipeline.classes_, 'Matrice di Confusione - Sentiment')
+plot_confusion_matrix(cm_dept, dept_pipeline.classes_,
+                      'Matrice di Confusione - Reparto',
+                      f'confusion_matrix_dept_R{RANDOMNESS_VALUE}_sklearn.png')
+plot_confusion_matrix(cm_sent, sent_pipeline.classes_,
+                      'Matrice di Confusione - Sentiment',
+                      f'confusion_matrix_sent_R{RANDOMNESS_VALUE}_sklearn.png')
 
 
 # --- Esempi di Errori Tipici (omessa per brevità, resta invariata) ---

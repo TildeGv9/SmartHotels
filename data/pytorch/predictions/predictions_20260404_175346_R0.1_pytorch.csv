@@ -1,0 +1,91 @@
+id,title,body,true_department,predicted_department,true_sentiment,predicted_sentiment,sentiment_confidence
+450,Problemi al check-in,"Camera in ordine, tutto funzionale.",Housekeeping,Housekeeping,neu,neu,0.99784327
+89,Colazione da dimenticare,"Poca professionalità dimostrata, standard davvero bassi.",Housekeeping,Housekeeping,neg,pos,0.7833396
+6,Staff professionale,"Organizzazione perfetta, hanno gestito tutto con grande competenza. Lo staff era giovane e inesperto.",Reception,F&B,pos,pos,0.97192556
+357,Staff professionale,"Soggiorno nella norma. Tutto funziona come dovrebbe, senza particolari sorprese.",Reception,Reception,neu,neu,0.9219918
+384,Colazione da dimenticare,"Esperienza negativa, staff indifferente ai miei problemi.",Reception,Reception,neg,neg,0.7694579
+230,Staff professionale,"Personale gentile e competente, hanno gestito tutto perfettamente.",Housekeeping,Housekeeping,neg,pos,0.99926466
+227,Delusione totale,"Servizio adeguato, senza particolari note. Vista mare molto bella.",Reception,Reception,neu,neu,0.4997127
+11,Problemi al check-in,"Camera ordinata, standard normale.",Housekeeping,Housekeeping,neu,neu,0.9841031
+288,Staff professionale,"Mi hanno seguito con cura, risultato finale eccellente.",Housekeeping,Housekeeping,pos,pos,0.99892277
+328,Staff professionale,"Staff molto cortese, ho apprezzato l'attenzione ai dettagli. Parcheggio difficile da trovare.",Housekeeping,Housekeeping,pos,pos,0.9997385
+158,Torneremo sicuramente,"Mi hanno seguito passo passo, risultato finale soddisfacente.",Reception,Reception,pos,neg,0.6177948
+337,Delusione totale,"Personale corretto, servizio nella norma.",Reception,Reception,neu,neu,0.9953452
+14,Colazione da dimenticare,"Camera pulita, niente di particolare da segnalare.",Housekeeping,Housekeeping,neu,neu,0.9884151
+87,Problemi al check-in,"Staff impreparato, non sapevano consigliarmi adeguatamente. Struttura un po' rumorosa.",F&B,F&B,neg,neg,0.9996898
+264,Colazione da dimenticare,"Personale disponibile quando necessario, nella media.",Reception,Reception,neu,neu,0.9983979
+404,Camera impeccabile,"Organizzazione perfetta, hanno gestito tutto con professionalità.",F&B,F&B,pos,pos,0.9710698
+360,Delusione totale,"Mi hanno trattato male, esperienza davvero spiacevole.",Reception,Reception,neg,neg,0.99979633
+367,Delusione totale,"Colazione standard, varietà sufficiente.",F&B,F&B,neg,neg,0.5084769
+301,Delusione totale,"Non sono rimasto soddisfatto. Staff disorganizzato, servizio lento e poca attenzione ai dettagli.",F&B,Reception,neg,neg,0.9994311
+332,Camera impeccabile,"Esperienza negativa, tutto gestito male e il personale sembra indifferente.",Reception,Housekeeping,neg,neg,0.5865787
+260,Delusione totale,"Servizio standard, tutto ok.",Reception,Reception,neg,neu,0.99716944
+12,Colazione da dimenticare,"Cibo discreto, servizio standard. Parcheggio difficile da trovare.",F&B,Housekeeping,neu,neu,0.98922336
+166,Delusione totale,"Organizzazione scarsa, tutto gestito male e con poca cura.",F&B,F&B,neg,neg,0.9820734
+383,Servizio eccellente!,Esperienza al di sotto delle aspettative. Personale poco disponibile e organizzazione scarsa.,Housekeeping,F&B,neg,neg,0.99835724
+419,Problemi al check-in,"Organizzazione pessima, tutto gestito con superficialità evidente.",Reception,Reception,neg,neg,0.5051036
+194,Torneremo sicuramente,"Servizio veloce ed efficiente, tutto risolto senza problemi.",Reception,Reception,pos,pos,0.99974126
+351,Staff professionale,"Ottima organizzazione, tutto funziona come dovrebbe funzionare.",Housekeeping,Housekeeping,neg,pos,0.8458411
+432,Prezzo e qualità non si incontrano,Tutto ok nel complesso. Niente di eccezionale ma nemmeno problemi particolari.,Housekeeping,Reception,neu,neg,0.52387154
+305,Un disastro,"Personale poco disponibile, esperienza frustrante complessivamente.",Housekeeping,Housekeeping,neg,neg,0.99991846
+126,Servizio eccellente!,"Staff preparato e gentile, tutto servito con grande cura.",F&B,F&B,pos,pos,0.99999213
+35,Un disastro,"Servizio lento, non sono riusciti a risolvere il problema.",Housekeeping,Housekeeping,neg,neg,0.99999094
+70,Colazione da dimenticare,"Staff scortese, mi hanno fatto sentire a disagio.",Housekeeping,Housekeeping,neg,neg,0.892286
+159,Un disastro,"Pasti nella media, nulla di eccezionale o negativo.",F&B,F&B,neu,neu,0.74247235
+362,Un disastro,"Personale poco gentile, mi hanno fatto aspettare inutilmente.",Reception,Reception,neg,neg,0.9999739
+30,Problemi al check-in,"Servizio lento e disorganizzato, nessuno sapeva cosa fare.",Reception,Reception,neg,neg,0.9992692
+184,Delusione totale,"Mi hanno trattato con indifferenza, molto deluso dal risultato.",Housekeeping,Housekeeping,neg,neg,0.99960357
+412,Torneremo sicuramente,"Personale molto gentile, mi hanno aiutato con grande cortesia.",Reception,Reception,pos,pos,0.9999449
+164,Colazione da dimenticare,"Non sono rimasto soddisfatto. Staff disorganizzato, servizio lento e poca attenzione ai dettagli.",Housekeeping,Reception,neg,neg,0.9988285
+296,Staff professionale,"Servizio rapido ed efficiente, sono rimasto molto soddisfatto.",Housekeeping,Housekeeping,pos,pos,0.9997118
+325,Delusione totale,"Check-in regolare, senza particolari problemi. Struttura un po' rumorosa.",Reception,F&B,neu,neg,0.99605197
+57,Colazione da dimenticare,"Esperienza negativa, staff indifferente ai clienti.",F&B,F&B,neg,neg,0.9955265
+314,Delusione totale,"Reception funzionale, tempi di attesa accettabili.",Reception,Reception,neu,neu,0.998982
+343,Staff professionale,"Esperienza accettabile. Qualche aspetto positivo, qualche aspetto migliorabile.",Housekeeping,F&B,neu,neu,0.9891567
+390,Colazione da dimenticare,"Colazione decente, tutto sommato ok.",F&B,F&B,neu,neu,0.9991203
+399,Colazione da dimenticare,"Servizio adeguato, senza particolari note.",Reception,Reception,neu,neu,0.9731164
+154,Problemi al check-in,"Pulizia sufficiente, come ci si aspetta.",Housekeeping,Housekeeping,neu,neu,0.9638545
+98,Staff professionale,"Tutto ok, esperienza nella media senza particolari problemi.",F&B,F&B,pos,pos,0.87995756
+5,Delusione totale,"Cibo discreto, servizio standard.",F&B,F&B,neu,neu,0.99611557
+441,Problemi al check-in,"Camera in ordine, tutto funzionale. Buona la piscina.",Housekeeping,Housekeeping,neu,neg,0.733649
+415,Camera impeccabile,"Staff preparato e disponibile, esperienza molto positiva. Parcheggio difficile da trovare.",Reception,Reception,neg,pos,0.9994012
+258,Colazione da dimenticare,"Mi hanno fatto aspettare troppo, qualità sotto le aspettative.",F&B,F&B,neg,neg,0.99978393
+370,Un disastro,"Personale disponibile quando necessario, nella media.",Reception,Reception,neu,neu,0.9979578
+121,Camera impeccabile,"Camera pulitissima e profumata, ottimo lavoro.",Housekeeping,Housekeeping,pos,pos,0.99874085
+431,Servizio eccellente!,"Esperienza standard, quello che ci si aspetta normalmente.",F&B,F&B,pos,pos,0.9995715
+213,Delusione totale,"Standard di pulizia accettabile, nella media.",Housekeeping,F&B,neu,neu,0.9965397
+7,Staff professionale,"Esperienza standard, quello che ci si aspetta normalmente.",F&B,F&B,pos,pos,0.9992951
+40,Un disastro,"Servizio regolare, niente di particolare.",F&B,F&B,neu,neu,0.9948148
+191,Torneremo sicuramente,"Personale cordiale e attento, servizio davvero di qualità.",Reception,Reception,pos,neg,0.8019878
+347,Staff professionale,"Personale attento ai dettagli, servizio davvero di livello.",F&B,F&B,pos,pos,0.9991722
+38,Delusione totale,"Qualità accettabile, scelta adeguata.",F&B,F&B,neu,neu,0.996799
+299,Staff professionale,"Esperienza eccellente, staff sempre pronto ad aiutare.",Reception,Reception,pos,pos,0.97506815
+123,Problemi al check-in,"Esperienza negativa, tutto gestito male e il personale sembra indifferente.",Housekeeping,Reception,pos,neg,0.7567431
+163,Colazione da dimenticare,"Organizzazione pessima, tutto gestito con superficialità evidente.",Reception,Reception,neg,neg,0.5132898
+380,Torneremo sicuramente,"Personale gentile e competente, hanno gestito tutto perfettamente.",Housekeeping,Housekeeping,pos,pos,0.997332
+250,Un disastro,"Esperienza negativa, non tornerò più in questo posto.",Housekeeping,Housekeeping,neg,neg,0.99979407
+406,Prezzo e qualità non si incontrano,"Esperienza piacevole, tutto funziona bene e il personale è sempre disponibile.",F&B,F&B,pos,pos,0.99977845
+448,Torneremo sicuramente,"Bella esperienza, personale cordiale e attento. Tutto gestito con professionalità.",F&B,Housekeeping,pos,pos,0.9608276
+152,Camera impeccabile,"Staff preparato e disponibile, esperienza molto positiva.",Reception,Reception,pos,pos,0.99950993
+237,Problemi al check-in,"Organizzazione pessima, tutto gestito con superficialità evidente.",Reception,Reception,neg,neg,0.5051036
+105,Servizio eccellente!,"Esperienza eccellente, staff sempre pronto ad aiutare.",Reception,Reception,pos,pos,0.98681426
+117,Colazione da dimenticare,"Servizio regolare, niente di particolare.",F&B,F&B,neg,neu,0.9977884
+142,Colazione da dimenticare,"Cibo discreto, servizio standard.",F&B,F&B,neu,neu,0.9972084
+334,Camera impeccabile,"Mi hanno seguito con cura, risultato finale eccellente.",Housekeeping,Housekeeping,pos,pos,0.9987766
+187,Staff professionale,"Esperienza molto positiva, staff competente e disponibile.",F&B,F&B,pos,pos,0.99077225
+245,Colazione da dimenticare,"Camera ordinata, standard normale.",Housekeeping,Housekeeping,neu,neu,0.99661535
+190,Un disastro,"Servizio lento e staff disorganizzato, esperienza deludente. Buona la piscina.",Reception,F&B,neg,neg,0.9947773
+329,Servizio eccellente!,"Mi hanno aiutato con grande disponibilità, tutto risolto rapidamente.",Housekeeping,Housekeeping,pos,pos,0.9999925
+112,Delusione totale,"Servizio lento e staff disorganizzato, esperienza deludente.",F&B,F&B,neg,neg,0.96848565
+292,Un disastro,"Organizzazione scarsa, tutto gestito male e con superficialità.",Housekeeping,Housekeeping,neg,neg,0.99836713
+303,Un disastro,"Mi hanno trattato male, esperienza davvero spiacevole.",Reception,Reception,neg,neg,0.9999
+143,Torneremo sicuramente,"Organizzazione perfetta, hanno gestito tutto con grande competenza.",Reception,Reception,pos,pos,0.9968274
+447,Colazione da dimenticare,"Check-in regolare, senza particolari problemi.",Reception,Reception,neu,neu,0.9327037
+381,Delusione totale,"Cibo nella media, prezzi normali per la categoria.",F&B,F&B,neu,neu,0.9992067
+61,Servizio eccellente!,"Grande professionalità dimostrata, esperienza davvero positiva.",Housekeeping,Housekeeping,pos,pos,0.99982375
+333,Colazione da dimenticare,"Cibo nella media, prezzi normali per la categoria.",F&B,F&B,neg,neu,0.9990895
+71,Un disastro,"Esperienza negativa, staff indifferente ai clienti.",F&B,F&B,neg,neg,0.9981925
+241,Servizio eccellente!,"Mi hanno consigliato bene, qualità ottima e prezzi giusti.",F&B,F&B,pos,pos,0.9991472
+157,Delusione totale,"Mi hanno fatto aspettare troppo, qualità sotto le aspettative.",F&B,F&B,neg,neg,0.99991643
+155,Servizio eccellente!,"Personale molto gentile, mi hanno aiutato con grande cortesia.",Reception,Reception,pos,pos,0.99999356
+120,Servizio eccellente!,"Ottima organizzazione, tutto funziona come dovrebbe funzionare.",Housekeeping,Housekeeping,pos,pos,0.9840677

@@ -1,40 +1,40 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Questo file fornisce indicazioni a Claude Code (claude.ai/code) quando lavora con il codice di questo repository.
 
-## Project Overview
+## Panoramica del Progetto
 
-SmartHotels is an academic ML project that classifies synthetic hotel reviews by **department** (Housekeeping, Reception, F&B) and **sentiment** (pos, neg, neu). The core research contribution is the "Randomness Paradox": sentiment analysis degrades gracefully under label noise while department classification collapses.
+SmartHotels è un progetto accademico di Machine Learning che classifica recensioni alberghiere sintetiche per **reparto** (Housekeeping, Reception, F&B) e **sentiment** (pos, neg, neu). Il contributo principale della ricerca è il "Paradosso del RANDOMNESS": l'analisi del sentiment degrada gradualmente in presenza di rumore nelle etichette, mentre la classificazione per reparto collassa.
 
-Documentation and comments are in Italian (academic requirement).
+La documentazione e i commenti sono in italiano (requisito accademico).
 
-## Common Commands
+## Comandi Principali
 
 ```bash
 # Setup
 python -m venv venv && source venv/bin/activate
-pip install -r dependencies.txt
+pip install -r requirements.txt
 
-# Standard workflow
-python dataset_generator.py          # Generate synthetic dataset (450 reviews)
-python ml_pipeline_sklearn.py        # Train & evaluate scikit-learn models
-streamlit run dashboard_app.py       # Launch interactive prediction UI
+# Workflow standard
+python dataset_generator.py          # Genera il dataset sintetico (450 recensioni)
+python ml_pipeline_sklearn.py        # Addestra e valuta i modelli scikit-learn
+streamlit run dashboard_app.py       # Avvia l'interfaccia utente interattiva
 
-# PyTorch alternative
-python ml_pipeline_pytorch.py        # Train PyTorch models (dashboard still uses joblib)
+# Alternativa PyTorch
+python ml_pipeline_pytorch.py        # Addestra i modelli PyTorch (la dashboard usa comunque joblib)
 
-# Research workflow
+# Workflow di ricerca
 python run_experiments.py                    # Sweep RANDOMNESS 0.1–0.9 (default: pytorch)
-python run_experiments.py --pipeline sklearn  # Use scikit-learn pipeline
-python run_experiments.py --pipeline pytorch  # Use PyTorch pipeline
-python visualization_analysis.py             # Generate comparison plots
+python run_experiments.py --pipeline sklearn  # Usa la pipeline scikit-learn
+python run_experiments.py --pipeline pytorch  # Usa la pipeline PyTorch
+python visualization_analysis.py             # Genera grafici comparativi
 ```
 
-No test suite exists; evaluation is done via printed metrics, confusion matrices, and exported predictions.
+Non esiste una suite di test; la valutazione avviene tramite metriche stampate, matrici di confusione e predizioni esportate.
 
-## Architecture
+## Architettura
 
-Five independent scripts share data through the filesystem:
+Cinque script indipendenti si scambiano dati tramite il filesystem:
 
 ```
 dataset_generator.py  →  data/hotel_reviews_synthetic_{RANDOMNESS}.csv (temporaneo)
@@ -44,7 +44,7 @@ run_experiments.py    →  sposta in data/{sklearn|pytorch}/reviews/
 ml_pipeline_sklearn.py →  models/*.joblib + data/sklearn/predictions/predictions_..._R{R}_sklearn.csv + plots/sklearn/
 ml_pipeline_pytorch.py →  models/*.pth   + data/pytorch/predictions/predictions_..._R{R}_pytorch.csv + plots/pytorch/
                               ↓
-dashboard_app.py      ←  models/*.joblib OR models/*.pth (selezionabile da sidebar)
+dashboard_app.py      ←  models/*.joblib OPPURE models/*.pth (selezionabile dalla sidebar)
 ```
 
 ### Struttura directory `data/`
@@ -70,34 +70,40 @@ plots/
 │   ├── paradox_visualization_sklearn.png
 │   ├── f1_heatmap_sklearn.png
 │   ├── dashboard_complete_sklearn.png
-│   └── current_performance_sklearn.png
+│   ├── current_performance_sklearn.png
+│   └── confusionMatrix/
+│       ├── confusion_matrix_dept_R{R}_sklearn.png
+│       └── confusion_matrix_sent_R{R}_sklearn.png
 └── pytorch/
     ├── accuracy_comparison_pytorch.png
     ├── paradox_visualization_pytorch.png
     ├── f1_heatmap_pytorch.png
     ├── dashboard_complete_pytorch.png
-    └── current_performance_pytorch.png
+    ├── current_performance_pytorch.png
+    └── confusionMatrix/
+        ├── confusion_matrix_dept_R{R}_pytorch.png
+        └── confusion_matrix_sent_R{R}_pytorch.png
 ```
 
-- **run_experiments.py** orchestrates dataset_generator + ml_pipeline across multiple RANDOMNESS values, saving JSON results to `experiments/`. Generates datasets in `data/`, then moves them into `data/{pipeline}/reviews/` (the standalone file in `data/` is deleted after the copy). Passes `DATASET_PATH`/`PREDICTIONS_DIR` env vars to pipelines. Supports both pipelines via `--pipeline sklearn|pytorch`.
-- **visualization_analysis.py** produces comparative plots (accuracy, F1 heatmap, paradox visualization) in `plots/{pipeline_name}/` when a pipeline name is set.
+- **run_experiments.py** orchestra dataset_generator + ml_pipeline su più valori di RANDOMNESS, salvando i risultati JSON in `experiments/`. Genera i dataset in `data/`, poi li sposta in `data/{pipeline}/reviews/` (il file temporaneo in `data/` viene eliminato dopo la copia). Passa le variabili d'ambiente `DATASET_PATH`/`PREDICTIONS_DIR` alle pipeline. Supporta entrambe le pipeline tramite `--pipeline sklearn|pytorch`.
+- **visualization_analysis.py** produce grafici comparativi (accuracy, heatmap F1, visualizzazione del paradosso) in `plots/{pipeline_name}/` quando è impostato il nome della pipeline. Carica automaticamente il JSON più recente da `experiments/` tramite `_load_experiment_data()`: se non trovato, usa dati statici di fallback. La heatmap F1 mostra il F1-Score macro per i due task (Reparto, Sentiment) su tutti i valori di RANDOMNESS testati.
 
-## Key Design Decisions
+## Decisioni Progettuali Chiave
 
-- **RANDOMNESS parameter** (0.0–1.0) in `dataset_generator.py` controls label noise injection — the central variable of the research.
-- **Dual-task, dual-framework**: Separate models for department and sentiment, implemented in both scikit-learn and PyTorch for comparison.
-- **Pipeline pattern**: scikit-learn models wrap TF-IDF + LogisticRegression in a `Pipeline` object, serialized with joblib.
-- **Reproducibility**: `random_state=42` used throughout.
-- **Dashboard supports both pipelines** — sidebar radio button lets the user switch between scikit-learn (joblib) and PyTorch models at runtime.
-- **Preprocessing is intentionally minimal** (lowercase, remove punctuation/numbers) — no lemmatization or stemming.
-- **Env var overrides**: `ml_pipeline_sklearn.py` and `ml_pipeline_pytorch.py` read `DATASET_PATH` and `PREDICTIONS_DIR` from environment variables when set (used by `run_experiments.py`), falling back to `data/{sklearn|pytorch}/reviews/` and `data/{sklearn|pytorch}/predictions/` defaults.
-- **RANDOMNESS in filenames**: Dataset files include the RANDOMNESS value as suffix (e.g., `hotel_reviews_synthetic_0.9.csv`). Pipelines extract this value from the filename to include it in prediction output names (`_R0.9_`).
+- **Parametro RANDOMNESS** (0.0–1.0) in `dataset_generator.py` controlla l'iniezione di rumore nelle etichette — la variabile centrale della ricerca.
+- **Dual-task, dual-framework**: Modelli separati per reparto e sentiment, implementati sia in scikit-learn che in PyTorch per confronto.
+- **Pattern Pipeline**: i modelli scikit-learn incapsulano TF-IDF + LogisticRegression in un oggetto `Pipeline`, serializzato con joblib.
+- **Riproducibilità**: `random_state=42` usato ovunque.
+- **La dashboard supporta entrambe le pipeline** — il pulsante radio nella sidebar permette di passare tra i modelli scikit-learn (joblib) e PyTorch a runtime.
+- **Preprocessing volutamente minimale** (lowercase, rimozione punteggiatura/numeri) — nessuna lemmatizzazione o stemming.
+- **Override tramite variabili d'ambiente**: `ml_pipeline_sklearn.py` e `ml_pipeline_pytorch.py` leggono `DATASET_PATH` e `PREDICTIONS_DIR` dalle variabili d'ambiente se impostate (usate da `run_experiments.py`), con fallback rispettivamente su `data/{sklearn|pytorch}/reviews/` e `data/{sklearn|pytorch}/predictions/`.
+- **RANDOMNESS nei nomi dei file**: I file dataset includono il valore RANDOMNESS come suffisso (es. `hotel_reviews_synthetic_0.9.csv`). Le pipeline estraggono questo valore dal nome del file per includerlo nei nomi di output delle predizioni (`_R0.9_`).
 
-## Best Practices
+## Buone Pratiche
 
-- **Document every change**: When modifying code (renaming files, changing output paths, adding parameters, etc.), always update all related documentation (CLAUDE.md, README.md) and code references (comments, error messages) to reflect the change. No undocumented changes.
-- **Pipeline-specific output naming**: All output files (models, predictions, plots, experiment JSON) must include a `_sklearn` or `_pytorch` suffix to distinguish which pipeline generated them and avoid overwriting.
+- **Documentare ogni modifica**: Quando si modifica il codice (rinomina file, cambio percorsi di output, aggiunta parametri, ecc.), aggiornare sempre tutta la documentazione correlata (CLAUDE.md, README.md) e i riferimenti nel codice (commenti, messaggi di errore) per riflettere le modifiche. Nessuna modifica non documentata.
+- **Naming degli output specifico per pipeline**: Tutti i file di output (modelli, predizioni, grafici, JSON degli esperimenti) devono includere il suffisso `_sklearn` o `_pytorch` per distinguere quale pipeline li ha generati ed evitare sovrascritture.
 
-## Dependencies
+## Dipendenze
 
-Managed via `dependencies.txt` (not requirements.txt). Key packages: pandas, numpy, scikit-learn, torch, matplotlib, seaborn, streamlit, altair==4.2.2.
+Gestite tramite `requirements.txt`. Pacchetti principali: pandas, numpy, scikit-learn, torch, matplotlib, seaborn, streamlit.

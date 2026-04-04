@@ -1,0 +1,6 @@
+[theme]
+primaryColor        = "#00AEEF"   # (pulsanti, slider, link)
+backgroundColor     = "#000000"   # (sfondo principale)
+secondaryBackgroundColor = "#0D1B2A"  # (sidebar, card, input)
+textColor           = "#E2E8F0"   # (testo principale)
+font                = "sans serif"

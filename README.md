@@ -165,6 +165,8 @@ L'interfaccia utente ti permette di testare i modelli in tempo reale e di esegui
 
 2. Il browser si aprirà automaticamente su `http://localhost:8501`.
 
+Oppure, puoi accedere alla dashboard dal seguente link https://smarthotels.streamlit.app/
+
 ## Funzionalità Avanzate
 
 ### 5. Analisi Visualizzazioni RANDOMNESS
